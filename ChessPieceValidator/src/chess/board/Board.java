@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * This file was developed by Ted Meyer for CS4233: Object-Oriented Analysis & Design.
+ * The course was taken at Worcester Polytechnic Institute.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+
 package chess.board;
 
 import java.util.Collection;
@@ -7,21 +17,74 @@ import java.util.LinkedList;
 import chess.ChessPiece;
 import chess.ChessPlayerColor;
 import chess.moves.ChessMove;
+import chess.moves.ChessMoveModifier;
 
+/**
+ * 
+ * @author ted
+ * 
+ * The Board will hold all stateful information about the game,
+ * including locations of pieces, who's turn it is, and things
+ * like check / checkmate. It also calculates move validity,
+ * including special moves like en-epssant and castling.
+ *
+ */
 public class Board
 {
+	/**
+	 * a non-lazy instantianted singleton instance
+	 */
+	private static final Board INSTANCE = new Board();
 	
+	/**
+	 * As per being a singleton, do not let other classes create instances
+	 * of board, and do not let board be subclassed
+	 */
+	private Board() {}
+	
+	/**
+	 * The singleton accessor
+	 * 
+	 * @return the singleton instance
+	 */
+	public static Board getInstance()
+	{
+		return INSTANCE;
+	}
+	
+	
+	/**
+	 * 
+	 * @param cl the location to test
+	 * @return whethere there is a piece at the provided location
+	 */
 	public boolean pieceExistsAt(ChessLocation cl)
 	{
 		return false; // TODO: make this stateful
 	}
 	
+	/**
+	 * 
+	 * This method will not check path intersections, ie, it would
+	 * report that a space is valid for a queen, even if there is a
+	 * piece blocking its path there
+	 * 
+	 * @param cp The chess piece in question (for the type)
+	 * @param cl the location of the piece on the board
+	 * @return a collection of all moves that the piece can make
+	 */
 	public Collection<ChessMove> validMovespieceRules(ChessPiece cp, ChessLocation cl)
 	{
 		return getChessPieceModifiers(cp, cl).applyTo(cl);
 	}
 	
-	private ChessMoveModifiers getChessPieceModifiers(ChessPiece cp, ChessLocation cl)
+	/**
+	 * 
+	 * @param cp the chess piece
+	 * @param cl the location (only used for pawns... TODO: remove this)
+	 * @return a wrapper object for the set of all available moves
+	 */
+	private ChessMoveModifierCollection getChessPieceModifiers(ChessPiece cp, ChessLocation cl)
 	{
 		Collection<ChessMoveModifier> data = new HashSet<ChessMoveModifier>();
 		switch(cp.getChessPieceType())
@@ -41,13 +104,13 @@ public class Board
 			case QUEEN:
 				for( int i = 1; i < 8; i++)
 				{
-					// bishop-style
+					// bishop style
 					data.add(new ChessMoveModifier(i, i));
 					data.add(new ChessMoveModifier(-i, i));
 					data.add(new ChessMoveModifier(-i, -i));
 					data.add(new ChessMoveModifier(i, -i));
 					
-					// rook-style
+					// rook style
 					data.add(new ChessMoveModifier(0, i));
 					data.add(new ChessMoveModifier(0, -i));
 					data.add(new ChessMoveModifier(i, 0));
@@ -57,7 +120,6 @@ public class Board
 			case ROOK:
 				for( int i = 1; i < 8; i++)
 				{
-					// rook-style
 					data.add(new ChessMoveModifier(0, i));
 					data.add(new ChessMoveModifier(0, -i));
 					data.add(new ChessMoveModifier(i, 0));
@@ -67,7 +129,6 @@ public class Board
 			case BISHOP:
 				for( int i = 1; i < 8; i++)
 				{
-					// rook-style
 					data.add(new ChessMoveModifier(i, i));
 					data.add(new ChessMoveModifier(-i, i));
 					data.add(new ChessMoveModifier(-i, -i));
@@ -110,7 +171,7 @@ public class Board
 				}
 				catch(IllegalArgumentException iae)
 				{
-					// do nothing with this failure
+					maybeLogException(iae, false);
 				}
 				try
 				{
@@ -122,24 +183,34 @@ public class Board
 				}
 				catch(IllegalArgumentException iae)
 				{
-					// do nothing with this failure
+					maybeLogException(iae, false);
 				}
 				
 		}
-		return new ChessMoveModifiers(data);
+		return new ChessMoveModifierCollection(data);
 	}
 	
-	
-	private static class ChessMoveModifiers
+	/**
+	 * 
+	 * @author ted
+	 *
+	 * A helper class for wrapping a set of modifiers
+	 */
+	private static class ChessMoveModifierCollection
 	{
 		private final Collection<ChessMoveModifier> moveModifiers;
 		
-		public ChessMoveModifiers(Collection<ChessMoveModifier> mods)
+		private ChessMoveModifierCollection(Collection<ChessMoveModifier> mods)
 		{
 			moveModifiers = new HashSet<>();
 			moveModifiers.addAll(mods);
 		}
 		
+		/**
+		 * 
+		 * @param cl the location to apply the set of move modifiers to
+		 * @return a collection of all the new chess moves
+		 */
 		public Collection<ChessMove> applyTo(ChessLocation cl)
 		{
 			Collection<ChessMove> result = new LinkedList<ChessMove>();
@@ -151,43 +222,23 @@ public class Board
 				}
 				catch (IllegalArgumentException iae)
 				{
-					// just dont add this to the valid moves
+					Board.maybeLogException(iae, false);
 				}
 			}
 			return result;
 		}
 	}
 	
-	private static class ChessMoveModifier
+	/**
+	 * TODO: use a logger
+	 * @param e any exception
+	 * @param doLog should we log it?
+	 */
+	public static void maybeLogException(Exception e, boolean doLog)
 	{
-		private final int alph;
-		private final int num;
-		
-		public ChessMoveModifier(int alphabetic, int numeric)
+		if (doLog)
 		{
-			alph = alphabetic;
-			num = numeric;
-		}
-
-		public ChessMove apply(ChessLocation cl)
-		{
-			return new ChessMove(cl, new ChessLocation((char) (cl.getAlphabetic() + alph), cl.getNumeric() + num));
-		}
-		
-		@Override
-		public boolean equals(Object other)
-		{
-			if (other == this)
-			{
-				return true;
-			}
-			if (other instanceof ChessMoveModifier)
-			{
-				ChessMoveModifier cmm = (ChessMoveModifier)other;
-				return (cmm.alph == alph) && (cmm.num == num); 
-			}
-			return false;
+			e.printStackTrace();
 		}
 	}
-	
 }

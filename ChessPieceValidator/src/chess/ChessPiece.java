@@ -16,6 +16,11 @@ import chess.moves.ChessMove;
 
 /**
  * A class that contains the information needed for a chess piece.
+ * 
+ * Modified by Ted Meyer for homework 1
+ * tmathmeyer@gmail.com
+ * tjmeyer@wpi.edu
+ * 
  * @version Aug 15, 2014
  */
 public class ChessPiece
@@ -23,19 +28,16 @@ public class ChessPiece
 	
 	private final ChessPieceType chessPieceType;
 	private final ChessPlayerColor chessPlayerColor;
-	private final Board gameState;
 	
 	/**
 	 * Constructor that creates the piece
 	 * @param type the type of piece
 	 * @param color the piece color
-	 * @param state the state of the board representing the game in which this piece is a member
 	 */
-	public ChessPiece(ChessPieceType type, ChessPlayerColor color, Board state)
+	public ChessPiece(ChessPieceType type, ChessPlayerColor color)
 	{
 		chessPieceType = type;
 		chessPlayerColor = color;
-		gameState = state;
 	}
 	
 	/**
@@ -90,7 +92,7 @@ public class ChessPiece
 			ChessLocation to   = new ChessLocation(toColumn, toRow);
 			
 			ChessMove definedMove = new ChessMove(from, to);
-			return gameState.validMovespieceRules(this, from).contains(definedMove);
+			return Board.getInstance().validMovespieceRules(this, from).contains(definedMove);
 		}
 		catch(IllegalArgumentException iae)
 		{

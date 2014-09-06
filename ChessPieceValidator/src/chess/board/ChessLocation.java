@@ -1,10 +1,33 @@
+/*******************************************************************************
+ * This file was developed by Ted Meyer for CS4233: Object-Oriented Analysis & Design.
+ * The course was taken at Worcester Polytechnic Institute.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+
 package chess.board;
 
+/**
+ * 
+ * @author ted
+ *
+ * A representation of a place on the board, such that
+ * an invalid space cannot be constructed
+ */
 public class ChessLocation
 {
 	private final Character alphabetic;
 	private final Integer numeric;
 	
+	/**
+	 * will fail if created with out of bounds parameters
+	 * 
+	 * @param alph the alphabetic (column) of the location
+	 * @param num the numeric (row) of the location
+	 */
 	public ChessLocation(char alph, int num)
 	{
 		if (alph >= 'a' && alph <= 'h')
@@ -52,8 +75,14 @@ public class ChessLocation
 		if (other instanceof ChessLocation)	
 		{
 			ChessLocation cl = (ChessLocation) other;
-			return getNumeric().equals(cl.getNumeric()) && getAlphabetic().equals(cl.getAlphabetic());
+			return numeric.equals(cl.getNumeric()) && alphabetic.equals(cl.getAlphabetic());
 		}
 		return false;
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return ((alphabetic * 11443) + (numeric * 16603)) * 31277;
 	}
 }
